@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Merchant Demo Checkout</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f4f8;
+        margin: 0;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #222;
+      }
+      form {
+        background: #fff;
+        padding: 30px;
+        max-width: 800px;
+        margin: auto;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      }
+      fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 25px;
+      }
+      legend {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #444;
+      }
+      label {
+        font-weight: 500;
+        display: block;
+        margin-top: 14px;
+        color: #333;
+      }
+      input, select, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 6px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      input:focus, select:focus, textarea:focus {
+        border-color: #0070f3;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      th, td {
+        border: 1px solid #e5e7eb;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #444;
+      }
+      tr:nth-child(even) {
+        background: #fafafa;
+      }
+      button {
+        margin-top: 18px;
+        padding: 12px 22px;
+        background: #0070f3;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 500;
+        transition: background 0.2s, transform 0.1s;
+      }
+      button:hover {
+        background: #0059c9;
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      .add-btn {
+        background: #28a745;
+        margin-top: 10px;
+      }
+      .add-btn:hover {
+        background: #218838;
+      }
+      .remove-btn {
+        background: #dc3545;
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      .remove-btn:hover {
+        background: #b02a37;
+      }
+      .section-divider {
+        margin: 30px 0;
+        border-top: 2px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Merchant Test Checkout</h1>
+    <form id="checkout-form" action="/testcheckout" method="post">
+      
+      <fieldset>
+        <legend>Merchant Info</legend>
+        <label for="merchantPublicKey">Merchant Public Key</label>
+        <textarea id="merchantPublicKey" name="merchantPublicKey" rows="3" required></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Order Info</legend>
+        <label>Merchant Reference Number</label>
+        <input type="text" id="merchantRef" name="merchantReferenceNumber" readonly required>
+        <button type="button" id="regenRef" style="margin-top:10px; background:#6c757d;">↻ Regenerate</button>
+
+
+        <label>Currency</label>
+        <select name="currency">
+          <option value="PHP" selected>PHP</option>
+          <option value="USD">USD</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Items</legend>
+        <table id="items-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Currency</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="items-body">
+            <tr>
+              <td><input type="text" name="items[0][name]" value="Wireless Mouse" required></td>
+              <td><input type="number" name="items[0][quantity]" value="1" required></td>
+              <td><input type="number" step="0.01" name="items[0][unitPrice]" value="350" required></td>
+              <td><input type="text" name="items[0][currency]" value="PHP" required></td>
+              <td><button type="button" class="remove-btn">X</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" id="add-item" class="add-btn">+ Add Item</button>
+      </fieldset>
+
+      <div class="section-divider"></div>
+      <button type="submit">💳 Checkout</button>
+    </form>
+
+    <script>
+      const tbody = document.getElementById("items-body");
+      const addBtn = document.getElementById("add-item");
+
+      addBtn.addEventListener("click", () => {
+        const index = tbody.rows.length;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input type="text" name="items[${index}][name]" required></td>
+          <td><input type="number" name="items[${index}][quantity]" value="1" required></td>
+          <td><input type="number" step="0.01" name="items[${index}][unitPrice]" required></td>
+          <td><input type="text" name="items[${index}][currency]" value="PHP" required></td>
+          <td><button type="button" class="remove-btn">X</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      tbody.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-btn")) {
+          e.target.closest("tr").remove();
+        }
+      });
+      function generateMerchantRef() {
+        const timestamp = Date.now().toString().slice(-6); // last 6 digits of timestamp
+        const random = Math.floor(1000 + Math.random() * 9000); // 4-digit random
+        return `TEST-${timestamp}-${random}`;
+      }
+
+      const merchantRefInput = document.getElementById("merchantRef");
+      const regenBtn = document.getElementById("regenRef");
+
+      // Auto-generate on page load
+      merchantRefInput.value = generateMerchantRef();
+
+      // Allow regeneration on button click
+      regenBtn.addEventListener("click", () => {
+        merchantRefInput.value = generateMerchantRef();
+      });
+    </script>
+  </body>
+</html>
