@@ -12,11 +12,11 @@ const {
 } = require("./callbackUtils");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 // Environment / config
 let PAYCONNECT_BASEURL =
-  process.env.PAYCONNECT_API_BASE_URL || "http://localhost:8080";
+  process.env.PAYCONNECT_API_BASE_URL || "http://host.docker.internal:8080";
 let MERCHANT_RESPONSE_KEY =
   process.env.MERCHANT_RESPONSE_KEY ||
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlbLRN4tqHsVPxpIqfHv9nWwhu9Px+TOclj0vZ5Dn7cW7pbigzq+xItn5QYRbuIlthNvdg/7ht1v6LpByY5CtlVYqeNHbT8n7toLu4e11jRgV9TN6nCgmdZFYJgqsjQcZPw/lUjwUzXxDDiAX43PNYFhgbXre/cj9xyVUTtH3Hp8nO/PeAt42yMbN47iIRErN4N5GBdq1B4o9Yv3s8b2sAmYkf1sczN7YakFOrWrp33uvM4vWP8685kaXkMKWE1ugcNo7qIl9WycFVgKjUTysV0x/aLEge1sMR+afZr0lYFoYXOQ86v4Yuj+qaHVmPgRueOKLTdti1tFhOlACAQaNoQIDAQAB";
@@ -32,7 +32,12 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 
 // Serve frontend
-app.use("/", express.static(path.join(__dirname, "../frontend")));
+// app.use("/", express.static(path.join(__dirname, "../frontend")));
+app.use(express.static("frontend")); // serve frontend
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // In-memory storage
 const webhookStore = new Map();         // transactionReferenceNumber → webhook payload
@@ -41,23 +46,26 @@ const checkoutStore = new Map();        // merchantReferenceNumber → expected 
 app.post("/testcheckout", async (req, res) => {
   console.log("Direct checkout test");
 
-  const { merchantPublicKey, currency, merchantReferenceNumber, items } = req.body;
+  const { merchantPublicKey, merchantResponseKey, currency, merchantReferenceNumber, items } = req.body;
 
-  if (!merchantPublicKey) {
-    return res.status(400).json({ error: "Merchant Public Key is required" });
+  if (!merchantPublicKey || !merchantResponseKey) {
+    return res.status(400).json({ error: "Merchant Public & Response Key are required" });
   }
 
   const authkey = merchantPublicKey.trim();
   const url = PAYCONNECT_BASEURL;
-
   const token = Buffer.from(authkey + ":").toString("base64");
+
   const amount = items.reduce(
     (total, item) => total + item.unitPrice * item.quantity,
     0
   );
 
-  // ✅ Save expected amount for this merchantReferenceNumber
-  checkoutStore.set(merchantReferenceNumber, amount);
+  // ✅ Save expected amount + response key for this merchantReferenceNumber
+  checkoutStore.set(merchantReferenceNumber, {
+    expectedAmount: amount,
+    responseKey: merchantResponseKey.trim(),
+  });
 
   const requestOptions = {
     method: "POST",
@@ -92,12 +100,12 @@ app.post("/testcheckout", async (req, res) => {
   }
 });
 
+
 // --- Webhook ---
 app.post("/webhook", async (req, res) => {
   console.log("Webhook received body:", req.body);
   const data = req.body;
 
-  // --- Signature headers ---
   const signatureHeader =
     req.header("Payconnect-Signature") || req.header("payconnect-signature");
   const timestampHeader =
@@ -112,12 +120,22 @@ app.post("/webhook", async (req, res) => {
     });
   }
 
-  const rawPayload =
-    req.rawBody && req.rawBody.length ? req.rawBody : JSON.stringify(data);
+  const rawPayload = req.rawBody?.length ? req.rawBody : JSON.stringify(data);
   const signaturePayload = nonceHeader + timestampHeader + rawPayload;
 
+  // ✅ Lookup responseKey + expectedAmount from checkoutStore
+  const store = checkoutStore.get(data.merchantReferenceNumber);
+  if (!store) {
+    return res.status(400).json({
+      errorCode: "UNKNOWN_REFERENCE",
+      errorDescription: "No checkout found for this merchantReferenceNumber",
+    });
+  }
+
+  const { expectedAmount, responseKey } = store;
+
   const isValidSignature = verifyRsaSignature(
-    MERCHANT_RESPONSE_KEY,
+    responseKey,
     signaturePayload,
     signatureHeader
   );
@@ -129,17 +147,9 @@ app.post("/webhook", async (req, res) => {
     });
   }
 
-  // --- ✅ Amount validation based on user input ---
-  const expectedAmount = checkoutStore.get(data.merchantReferenceNumber);
+  // ✅ Amount validation based on user input
   const receivedAmount = parseFloat(data.amount);
-
-  if (expectedAmount == null) {
-    console.warn("No expected amount found for this merchantReferenceNumber");
-  } else if (receivedAmount !== expectedAmount) {
-    console.error("Amount validation failed:", {
-      expected: expectedAmount,
-      received: receivedAmount,
-    });
+  if (receivedAmount !== expectedAmount) {
     return res.status(400).json({
       errorCode: "AMOUNT_MISMATCH",
       errorDescription: `Expected ₱${expectedAmount}, but received ₱${receivedAmount}`,
@@ -154,11 +164,10 @@ app.post("/webhook", async (req, res) => {
     console.log("Stored webhook event for:", data.transactionReferenceNumber);
   }
 
-  const resBody = {
+  return res.status(200).json({
     status: "SUCCESS",
     message: "Merchant webhook processed successfully",
-  };
-  return res.status(200).json(resBody);
+  });
 });
 
 
@@ -244,7 +253,3 @@ function verifyRsaSignature(publicKey, data, signature) {
     .end()
     .verify(loadedPublicKey, Buffer.from(signature, "base64"));
 }
-
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-});
