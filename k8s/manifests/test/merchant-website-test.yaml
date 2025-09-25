@@ -21,12 +21,12 @@ spec:
         - containerPort: 3000
         env:
         - name: PORT
-          value: 3000
+          value: "3000"
         - name: PAYCONNECT_API_BASE_URL
           value: "test-checkout-api.payconnect.io"
       imagePullSecrets:
       - name: "dockerregistrysecret"
-      
+
 ---
 apiVersion: v1
 kind: Service

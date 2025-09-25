@@ -21,7 +21,7 @@ spec:
         - containerPort: 3000
         env:
         - name: PORT
-          value: 3000
+          value: "3000"
         - name: PAYCONNECT_API_BASE_URL
           value: "dev-checkout-api.payconnect.io"
       imagePullSecrets:
