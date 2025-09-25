@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: merchant-website-prod
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: "merchant-website-prod=hephaestus.apollo.com.ph:5000/payment-gateway-v2/merchant-website:1.0.0-prod"
+    argocd-image-updater.argoproj.io/write-back-method: argocd
+    argocd-image-updater.argoproj.io/pull-policy: Always
+    argocd-image-updater.argoproj.io/merchant-website-prod.update-strategy: "digest"
+spec:
+  project: payment-gateway
+  source:
+    repoURL: 'git@github.com:apollo-com-ph/Test-Merchant-Website.git'
+    targetRevision: production
+    path: k8s/manifests/prod
+    kustomize: {}
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: payment-gateway
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: false

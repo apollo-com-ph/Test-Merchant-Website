@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: merchant-website-dev
+  namespace: payment-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: merchant-website-dev
+  template:
+    metadata:
+      labels:
+        app: merchant-website-dev
+    spec:
+      containers:
+      - name: merchant-website-dev
+        image: hephaestus.apollo.com.ph:5000/payment-gateway-v2/merchant-website:1.0.0-prod
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: 3000
+        - name: PAYCONNECT_API_BASE_URL
+          value: "paygateway-api.payconnect.io"
+      imagePullSecrets:
+      - name: "dockerregistrysecret"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: merchant-website-dev
+  namespace: payment-gateway
+spec:
+  type: ClusterIP
+  ports:
+    - name: port1
+      port: 3000
+      targetPort: 3000
+  selector:
+    app: merchant-website-dev
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: merchant-website-dev
+  namespace: payment-gateway
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Forwarded-For $http_x_forwarded_for";
+      proxy_set_header X-Forwarded-For "$remote_addr, $server_addr";
+    nginx.ingress.kubernetes.io/proxy-body-size: "64k"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header Host $host:$server_port;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_buffer_size 8k;
+      proxy_buffers 4 16k;
+      proxy_busy_buffers_size 32k;
+      large_client_header_buffers 4 16k;
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - dev-paygatedemo.payconnect.io
+      secretName: payconnect.io
+  rules:
+    - host: dev-paygatedemo.payconnect.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: merchant-website-dev
+                port:
+                  number: 3000
