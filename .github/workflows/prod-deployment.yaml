@@ -1,4 +1,4 @@
-name: Build and Push Image to Docker Registry
+name: Production Merchant Website
 on: 
   push:
     branches: 
