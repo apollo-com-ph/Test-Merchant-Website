@@ -23,7 +23,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: PAYCONNECT_API_BASE_URL
-          value: "test-checkout-api.payconnect.io"
+          value: "https://test-checkout-api.payconnect.io"
       imagePullSecrets:
       - name: "payment-gateway-v2-secret"
 

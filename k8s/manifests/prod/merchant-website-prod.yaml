@@ -23,7 +23,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: PAYCONNECT_API_BASE_URL
-          value: "paygateway-api.payconnect.io"
+          value: "https://paygateway-api.payconnect.io"
       imagePullSecrets:
       - name: "olddockerregistrysecret"
 ---
