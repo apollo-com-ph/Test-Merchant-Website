@@ -25,7 +25,7 @@ spec:
         - name: PAYCONNECT_API_BASE_URL
           value: "sbx-paygateway-api.payconnect.io"
       imagePullSecrets:
-      - name: "dockerregistrysecret"
+      - name: "payment-gateway-v2-secret"
 
 ---
 apiVersion: v1
