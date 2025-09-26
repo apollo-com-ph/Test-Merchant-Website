@@ -3,7 +3,7 @@ kind: Kustomization
 
 # Define resources that are part of this Kustomization
 resources:
-  - merchant-website-sbx.yaml
+  - merchant-website-sbx-am1.yaml
 
 images:
   - name: k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website
