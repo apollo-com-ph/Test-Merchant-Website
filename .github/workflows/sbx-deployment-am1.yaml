@@ -2,7 +2,7 @@ name: Sandbox Merchant Website
 on: 
   push:
     branches: 
-      - sandbox-am1
+      - sbx-am1
     paths-ignore:
       - 'k8s/manifests/**'
 

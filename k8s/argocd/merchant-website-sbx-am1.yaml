@@ -12,7 +12,7 @@ spec:
   project: payment-gateway
   source:
     repoURL: 'git@github.com:apollo-com-ph/Test-Merchant-Website.git'
-    targetRevision: sandbox-am1
+    targetRevision: sbx-am1
     path: k8s/manifests/sbx-am1
     kustomize: {}
   destination:
