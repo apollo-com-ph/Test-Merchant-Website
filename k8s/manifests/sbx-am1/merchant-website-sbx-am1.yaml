@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: merchant-website-sbx
+  name: merchant-website-sbx-am1
   namespace: payment-gateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: merchant-website-sbx
+      app: merchant-website-sbx-am1
   template:
     metadata:
       labels:
-        app: merchant-website-sbx
+        app: merchant-website-sbx-am1
     spec:
       containers:
-      - name: merchant-website-sbx
-        image: k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website:1.0.0-sbx
+      - name: merchant-website-sbx-am1
+        image: k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website:1.0.0-sbx-am1
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -23,7 +23,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: PAYCONNECT_API_BASE_URL
-          value: "https://sbx-paygateway-api.payconnect.io"
+          value: "https://sbx-am1-paygateway-api.payconnect.io"
       imagePullSecrets:
       - name: "payment-gateway-v2-secret"
 
@@ -31,7 +31,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: merchant-website-sbx
+  name: merchant-website-sbx-am1
   namespace: payment-gateway
 spec:
   type: ClusterIP
@@ -40,13 +40,13 @@ spec:
       port: 3000
       targetPort: 3000
   selector:
-    app: merchant-website-sbx
+    app: merchant-website-sbx-am1
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: merchant-website-sbx
+  name: merchant-website-sbx-am1
   namespace: payment-gateway
   annotations:
     nginx.ingress.kubernetes.io/configuration-snippet: |
@@ -70,16 +70,16 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - sbx-paygatedemo.payconnect.io
+        - sbx-am1-paygatedemo.payconnect.io
       secretName: payconnect.io
   rules:
-    - host: sbx-paygatedemo.payconnect.io
+    - host: sbx-am1-paygatedemo.payconnect.io
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: merchant-website-sbx
+                name: merchant-website-sbx-am1
                 port:
                   number: 3000
