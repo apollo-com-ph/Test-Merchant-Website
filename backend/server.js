@@ -46,7 +46,7 @@ const checkoutStore = new Map();        // merchantReferenceNumber → expected 
 app.post("/testcheckout", async (req, res) => {
   console.log("Direct checkout test");
 
-  const { merchantPublicKey, merchantResponseKey, currency, merchantReferenceNumber, items } = req.body;
+  const { merchantPublicKey, merchantResponseKey, currency, merchantReferenceNumber, items, phoneNumber } = req.body;
 
   if (!merchantPublicKey || !merchantResponseKey) {
     return res.status(400).json({ error: "Merchant Public & Response Key are required" });
@@ -78,6 +78,7 @@ app.post("/testcheckout", async (req, res) => {
       amount,
       merchantReferenceNumber,
       items,
+      phoneNumber,
     }),
   };
 
