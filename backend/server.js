@@ -41,12 +41,12 @@ app.listen(PORT, "0.0.0.0", () => {
 
 // In-memory storage
 const webhookStore = new Map();         // transactionReferenceNumber → webhook payload
-const checkoutStore = new Map();        // merchantReferenceNumber → expected amount
+const checkoutStore = new Map();        // merchRefNo → expected amount
 
 app.post("/testcheckout", async (req, res) => {
   console.log("Direct checkout test");
 
-  const { merchantPublicKey, merchantResponseKey, currency, merchantReferenceNumber, items, phoneNumber } = req.body;
+  const { merchantPublicKey, merchantResponseKey, ccy, merchRefNo, items, mobile } = req.body;
 
   if (!merchantPublicKey || !merchantResponseKey) {
     return res.status(400).json({ error: "Merchant Public & Response Key are required" });
@@ -57,12 +57,12 @@ app.post("/testcheckout", async (req, res) => {
   const token = Buffer.from(authkey + ":").toString("base64");
 
   const amount = items.reduce(
-    (total, item) => total + item.unitPrice * item.quantity,
+    (total, item) => total + item.unitPrice * item.qty,
     0
   );
 
-  // ✅ Save expected amount + response key for this merchantReferenceNumber
-  checkoutStore.set(merchantReferenceNumber, {
+  // ✅ Save expected amount + response key for this merchRefNo
+  checkoutStore.set(merchRefNo, {
     expectedAmount: amount,
     responseKey: merchantResponseKey.trim(),
   });
@@ -74,11 +74,11 @@ app.post("/testcheckout", async (req, res) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      currency: currency || "PHP",
+      ccy: ccy || "PHP",
       amount,
-      merchantReferenceNumber,
+      merchRefNo,
       items,
-      phoneNumber,
+      mobile,
     }),
   };
 
@@ -125,11 +125,11 @@ app.post("/webhook", async (req, res) => {
   const signaturePayload = nonceHeader + timestampHeader + rawPayload;
 
   // ✅ Lookup responseKey + expectedAmount from checkoutStore
-  const store = checkoutStore.get(data.merchantReferenceNumber);
+  const store = checkoutStore.get(data.merchRefNo);
   if (!store) {
     return res.status(400).json({
       errorCode: "UNKNOWN_REFERENCE",
-      errorDescription: "No checkout found for this merchantReferenceNumber",
+      errorDescription: "No checkout found for this merchRefNo",
     });
   }
 
@@ -205,7 +205,7 @@ app.get("/success/:transactionReferenceNumber", (req, res) => {
           <p>Your payment has been confirmed by the webhook.</p>
           <table>
             <tr><th>Transaction Reference</th><td>${event.transactionReferenceNumber}</td></tr>
-            <tr><th>Merchant Reference</th><td>${event.merchantReferenceNumber}</td></tr>
+            <tr><th>Merchant Reference</th><td>${event.merchRefNo}</td></tr>
             <tr><th>Amount</th><td>₱${event.amount}</td></tr>
             <tr><th>Merchant Code</th><td>${event.merchantCode}</td></tr>
             <tr><th>Status</th><td>${event.status}</td></tr>
