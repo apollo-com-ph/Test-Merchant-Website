@@ -130,17 +130,26 @@
           name="merchantResponseKey" 
           required
         />
+          <label for="mobile">Mobile Number</label>
+          <input 
+            type="tel" 
+            id="mobile" 
+            name="mobile" 
+            pattern="[0-9]{11}" 
+            placeholder="09XXXXXXXXX" 
+            required
+          />
       </fieldset>
 
       <fieldset>
         <legend>Order Info</legend>
         <label>Merchant Reference Number</label>
-        <input type="text" id="merchantRef" name="merchantReferenceNumber" readonly required>
+        <input type="text" id="merchantRef" name="merchRefNo" readonly required>
         <button type="button" id="regenRef" style="margin-top:10px; background:#6c757d;">↻ Regenerate</button>
 
 
         <label>Currency</label>
-        <select name="currency">
+        <select name="ccy">
           <option value="PHP" selected>PHP</option>
           <option value="USD">USD</option>
         </select>
@@ -161,9 +170,9 @@
           <tbody id="items-body">
             <tr>
               <td><input type="text" name="items[0][name]" value="Wireless Mouse" required></td>
-              <td><input type="number" name="items[0][quantity]" value="1" required></td>
+              <td><input type="number" name="items[0][qty]" value="1" required></td>
               <td><input type="number" step="0.01" name="items[0][unitPrice]" value="350" required></td>
-              <td><input type="text" name="items[0][currency]" value="PHP" required></td>
+              <td><input type="text" name="items[0][ccy]" value="PHP" required></td>
               <td><button type="button" class="remove-btn">X</button></td>
             </tr>
           </tbody>
@@ -184,9 +193,9 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><input type="text" name="items[${index}][name]" required></td>
-          <td><input type="number" name="items[${index}][quantity]" value="1" required></td>
+          <td><input type="number" name="items[${index}][qty]" value="1" required></td>
           <td><input type="number" step="0.01" name="items[${index}][unitPrice]" required></td>
-          <td><input type="text" name="items[${index}][currency]" value="PHP" required></td>
+          <td><input type="text" name="items[${index}][ccy]" value="PHP" required></td>
           <td><button type="button" class="remove-btn">X</button></td>
         `;
         tbody.appendChild(row);

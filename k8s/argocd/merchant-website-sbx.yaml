@@ -4,7 +4,7 @@ metadata:
   name: merchant-website-sbx
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: "merchant-website-sbx=k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website:1.0.0-sbx"
+    argocd-image-updater.argoproj.io/image-list: "merchant-website-sbx=harbor.vm2-aks.apolloglobal.net/payconnect-switch/merchant-website:1.0.0-sbx"
     argocd-image-updater.argoproj.io/write-back-method: argocd
     argocd-image-updater.argoproj.io/pull-policy: Always
     argocd-image-updater.argoproj.io/merchant-website-sbx.update-strategy: "digest"
