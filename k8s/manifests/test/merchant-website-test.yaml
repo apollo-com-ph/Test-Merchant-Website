@@ -23,7 +23,7 @@ spec:
         - name: PORT
           value: "3000"
         - name: PAYCONNECT_API_BASE_URL
-          value: "https://test-checkout-api.payconnect.io"
+          value: "https://test-switch-be.payconnect.io"
       imagePullSecrets:
       - name: "seven-otc-sim-registry-secret"
 
