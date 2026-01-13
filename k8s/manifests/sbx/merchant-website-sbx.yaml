@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: merchant-website-sbx
-        image: k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website:1.0.0-sbx
+        image: harbor.vm2-aks.apolloglobal.net/payconnect-switch/merchant-website:1.0.0-sbx
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -25,7 +25,7 @@ spec:
         - name: PAYCONNECT_API_BASE_URL
           value: "https://sbx-paygateway-api.payconnect.io"
       imagePullSecrets:
-      - name: "payment-gateway-v2-secret"
+      - name: "seven-otc-sim-registry-secret"
 
 ---
 apiVersion: v1

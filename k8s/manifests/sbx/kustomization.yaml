@@ -6,5 +6,5 @@ resources:
   - merchant-website-sbx.yaml
 
 images:
-  - name: k8s-registry.apollo.com.ph/payment-gateway-v2/merchant-website
+  - name: harbor.vm2-aks.apolloglobal.net/payconnect-switch/merchant-website
     newTag: 1.0.0-sbx
