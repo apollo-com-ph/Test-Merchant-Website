@@ -38,4 +38,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.VM2_TALOS_DOCKER_REGISTRY }}/payconnect-switch/merchant-website:1.0.0-dev
-          # tags: ${{ secrets.AM1_DOCKER_REGISTRY }}/payment-gateway-v2/merchant-website:1.0.0-dev
+          # tags: ${{ secrets.AM1_DOCKER_REGISTRY }}/payment-gateway-v2/merchant-website:1.0.0-dev 

@@ -37,4 +37,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.VM2_TALOS_DOCKER_REGISTRY }}/payconnect-switch/merchant-website:1.0.0-test
+          tags: ${{ secrets.VM2_TALOS_DOCKER_REGISTRY }}/payconnect-switch/merchant-website:1.0.0-test 
